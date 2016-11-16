@@ -244,4 +244,388 @@ END LOOP;
 ```
 ---
 ## PL/SQL Cursors
+
+**What are Cursors?**
+A cursor is a temporary work area created in the system memory when a SQL statement is executed. A cursor contains information on a select statement and the rows of data accessed by it.
+
+This temporary work area is used to store the data retrieved from the database, and manipulate this data. A cursor can hold more than one row, but can process only one row at a time. The set of rows the cursor holds is called the active set.
+
+There are two types of cursors in PL/SQL:
+
+### Implicit Cursors
+
+These are created by default when DML statements like, INSERT, UPDATE, and DELETE statements are executed. They are also created when a SELECT statement that returns just one row is executed. 
+
+Oracle provides few attributes called as implicit cursor attributes to check the status of DML operations. The cursor attributes available are %FOUND, %NOTFOUND, %ROWCOUNT, and %ISOPEN. 
+
+
+The status of the cursor for each of these attributes are defined in the below table.
+
+| Attribute | Return Value | Usage |
+| --------- | ------------ | ----- |
+| %FOUND | **True**, If DML statements affect at least onme row and if SELECT...INTO statement returns at least one row. **False**, if nothing is affected.| SQL%FOUND | 
+| %NOTFOUND | **True**, If DML statements affect at least onme row and if SELECT...INTO statement returns at least one row. **False**, if nothing is affected. | SQL%NOTFOUND|
+| %ROWCOUNT | Returns the number of affected rows by query. | SQL%ROWCOUNT |
+
+
+### Explicit Cursors
+
+They must be created when you are executing a SELECT statement that returns more than one row. Even though the cursor stores multiple records, only one record can be processed at a time, which is called as current row. When you fetch a row the current row position moves to next row.
+
+An explicit cursor is defined in the declaration section of the PL/SQL Block. It is created on a SELECT Statement which returns more than one row. We can provide a suitable name for the cursor.
+
+General Syntax for creating a cursor is as given below:
+```
+CURSOR cursor_name IS select_statement;
+
+-- cursor_name : A suitable name for the cursor.
+-- select_statement : A select query which returns multiple rows.
+```
+**How to use Explicit Cursor?**
+There are four steps in using an Explicit Cursor :
+
+- DECLARE the cursor in the declaration section.
+- OPEN the cursor in the Execution Section.
+- FETCH the data from cursor into PL/SQL variables or records in the Execution Section.
+- CLOSE the cursor in the Execution Section before you end the PL/SQL Block.
+
+**Example Usage : **
+
+```
+declare 
+rec PERSONS%rowtype;
+cursor cr is select * from PERSONS where AGE > 10;
+begin
+if not cr%ISOPEN then
+open cr;
+end if; 
+loop
+fetch cr into rec;
+dbms_output.put_line(rec.firstname || ' ' || rec.lastname || ' ' || rec.person_id);
+-- numrows := numrows - 1;
+exit when cr%NOTFOUND;
+end loop;
+close cr; 
+end;    
+```	
+
+---
+
+## Stored Procedures
+
+A stored procedure or in simple a proc is a named PL/SQL block which performs one or more specific task. This is similar to a procedure in other programming languages.
+
+A procedure has a header and a body. The header consists of the name of the procedure and the parameters or variables passed to the procedure. The body consists or declaration section, execution section and exception section similar to a general PL/SQL Block
+
+**Procedures: Passing Parameters**
+We can pass parameters to procedures in three ways.
+
+1. IN-parameters
+2. OUT-parameters
+3. IN OUT-parameters
+
+A procedure may or may not return any value.
+
+```	
+CREATE [OR REPLACE] PROCEDURE proc_name [list of parameters] 
+IS    
+   Declaration section 
+BEGIN    
+   Execution section 
+EXCEPTION    
+  Exception section 
+END; 
+```	
+
+**IS** : marks the beginning of the body of the procedure and is similar to DECLARE in anonymous PL/SQL Blocks. The code between IS and BEGIN forms the Declaration section.
+
+The syntax within the brackets [ ] indicate they are optional. By using CREATE OR REPLACE together the procedure is created if no other procedure with the same name exists or the existing procedure is replaced with the current code.
+
+```	
+declare 
+rec TABLE_NAME %rowtype;
+cursor cr is select * from TABLE_NAME where AGE > 10;
+begin
+if not cr%ISOPEN then
+open cr;
+end if; 
+loop
+fetch cr into rec;
+dbms_output.put_line(rec.firstname || ' ' || rec.lastname || ' ' || rec.person_id);
+-- numrows := numrows - 1;
+exit when cr%NOTFOUND;
+end loop;
+close cr; 	
+end;    
+```	
+
+To use stored procedure from SQL prompt :
+```	
+exec [ or execute ] procedure_name ;
+```	
+or to use within another procedure  simply write the name of the procedure : 
+```	
+procedure_name ;
+```	
+
+---
+
+## PL/SQL Functions
+
+A function is a named PL/SQL Block which is similar to a procedure. The major difference between a procedure and a function is, a function must always return a value, but a procedure may or may not return a value.
+
+General Syntax to create a function is : 
+```
+CREATE [OR REPLACE] FUNCTION function_name [parameters] 
+RETURN return_datatype;  
+IS  
+Declaration_section  
+BEGIN  
+Execution_section 
+Return return_variable;  
+EXCEPTION  
+exception section  
+Return return_variable;  
+END; 
+```
+### How to execute a PL/SQL Function?
+A function can be executed in the following ways.
+
+1. Since a function returns a value we can assign it to a variable.
+```variable_name :=  func_name;```
+	If ‘employee_name’ is of datatype varchar we can store the name of the employee by assigning the return type of the function to it.
+
+2. As a part of a SELECT statement
+	```SELECT func_name FROM table;```
+
+3. In a PL/SQL Statements like,
+```dbms_output.put_line(func_name);```
+This line displays the value returned by the function.
+
+
+### Parameters in Procedure and Functions
+
+In PL/SQL, we can pass parameters to procedures and functions in three ways.
+
+1. **IN** type parameter: These types of parameters are used to send values to stored procedures and they are read-only. We can assign the value of IN type parameter to a variable or use it in a query, but we cannot change its value inside the procedure. General syntax to pass a IN parameter is :
+``` CREATE [OR REPLACE] PROCEDURE procedure_name ( param_name1 IN datatype, param_name12 IN datatype ... ) ```
 	
+2. **OUT** type parameter: These types of parameters are used to get values from stored procedures. This is similar to a return type in functions and these are write-only parameters. We cannot pass values to OUT paramters while executing the stored procedure, but we can assign values to OUT parameter inside the stored procedure and the calling program can recieve this output value. General syntax to create an OUT parameter is
+```CREATE [OR REPLACE] PROCEDURE proc_name (param_name OUT datatype) ```
+
+3. **IN OUT** parameter: These types of parameters are used to send values and get values from stored procedures. This parameter is used if the value of the IN parameter can be changed in the calling program. 
+By using IN OUT parameter we can pass values into a parameter and return a value to the calling program using the same parameter. But this is possible only if the value passed to the procedure and output value have a same datatype. This parameter is used if the value of the parameter will be changed in the procedure.
+General syntax to create an _IN OUT_ parameter is :
+``` CREATE [OR REPLACE] PROCEDURE proc3 (param_name IN OUT datatype) ```
+
+**NOTE** : If a parameter is not explicitly defined a parameter type, then by default it is an _IN_ type parameter.
+
+---
+
+## PL/SQL Exception Handling
+
+PL/SQL Exception message consists of three parts. 
+1. Type of Exception
+2. An Error Code
+3. A message 
+
+General Syntax for coding the exception section
+
+```
+ DECLARE
+   Declaration section 
+ BEGIN 
+   Exception section 
+ EXCEPTION 
+ WHEN ex_name1 THEN 
+    -Error handling statements 
+ WHEN ex_name2 THEN 
+    -Error handling statements 
+ WHEN Others THEN 
+   -Error handling statements 
+END; 
+```
+
+When an exception is raised, Oracle searches for an appropriate exception handler in the exception section. For example in the above example, if the error raised is 'ex_name1 ', then the error is handled according to the statements under it. Since, it is not possible to determine all the possible runtime errors during testing fo the code, the 'WHEN Others' exception is used to manage the exceptions that are not explicitly handled. Only one exception can be raised in a Block and the control does not return to the Execution Section after the error is handled.
+
+If there are nested PL/SQL blocks like this.
+
+```
+ DELCARE
+   Declaration section 
+   -- Inner Block Start --
+    DECLARE
+      Declaration section 
+    BEGIN 
+      Execution section 
+    EXCEPTION 
+      Exception section 
+    END; 
+    -- Inner Block End --
+ EXCEPTION
+   Exception section 
+ END;
+```
+ 
+In the above case, if the exception is raised in the inner block it should be handled in the exception block of the inner PL/SQL block else the control moves to the Exception block of the next upper PL/SQL Block. If none of the blocks handle the exception the program ends abruptly with an error.
+
+### Tyepes Of Exceptions 
+
+There are three types of exception;
+
+- Named System Exceptions
+- Unnamed System exceptions
+- User-defined exceptions.
+
+#### Named System Exceptions
+
+System exceptions are automatically raised by Oracle, when a program violates a RDBMS rule. There are some system exceptions which are raised frequently, so they are pre-defined and given a name in Oracle which are known as Named System Exceptions.
+
+For example: _NO_DATA_FOUND_ and _ZERO_DIVIDE_ are called **Named System Exceptions**.	
+
+#### Unnamed System Exceptions
+Those system exception for which oracle does not provide a name is known as unamed system exception. These exception do not occur frequently. These Exceptions have a code and an associated message.
+
+There are two ways to handle unnamed sysyem exceptions: 
+1. By using the _WHEN OTHERS_ exception handler, or 
+2. By associating the exception code to a name and using it as a named exception.
+
+We can assign a name to unnamed system exceptions using a _Pragma_ called _EXCEPTION_INIT_. 
+_EXCEPTION_INIT_ will associate a predefined Oracle error number to a user defined exception name.
+
+General syntax to declare unnamed system exception using EXCEPTION_INIT is:
+
+```
+DECLARE 
+   exception_name EXCEPTION; 
+   PRAGMA 
+   EXCEPTION_INIT (exception_name, Err_code); 
+BEGIN 
+Execution section
+EXCEPTION
+  WHEN exception_name THEN
+     handle the exception
+END; 
+```
+
+#### User-defined Excetions
+
+Apart from sytem exceptions we can explicity define exceptions based on business rules. These are known as user-defined exceptions.
+
+Steps to be followed to use user-defined exceptions: 
+
+- They should be explicitly declared in the declaration section. 
+- They should be explicitly raised in the Execution Section. 
+- They should be handled by referencing the user-defined exception name in the exception section.
+General syntax for user-defined exceptions is : 
+```
+DECLARE
+exception_name EXCEPTION;
+(...)
+BEGIN
+(...)
+RAISE exception_name;
+(...)
+EXCEPTION
+WHEN exception_name THEN
+(... handle the exception here.)
+END;
+/
+```
+
+#### **RAISE_APPLICATIN_ERROR()**
+
+_RAISE_APPLICATION_ERROR_ is a built-in procedure in Oracle which is used to display the user-defined error messages along with the error number whose range is in between -20000 and -20999.
+
+Whenever a message is displayed using RAISE_APPLICATION_ERROR, all previous transactions which are not committed within the PL/SQL Block are rolled back automatically (i.e. change due to INSERT, UPDATE, or DELETE statements).
+
+RAISE_APPLICATION_ERROR raises an exception but does not handle it.
+
+RAISE_APPLICATION_ERROR is used for the following reasons, 
+
+- to create a unique id for an user-defined exception. 
+- to make the user-defined exception look like an Oracle error.
+
+General Syntax to use this procedure is:
+```
+RAISE_APPLICATION_ERROR (error_number, error_message); 
+```
+• The Error number must be between -20000 and -20999 
+• The Error_message is the message you want to display when the error occurs.
+
+Example usage :
+```
+DECLARE
+exception_name EXCEPTION;
+(...)
+BEGIN
+(...)
+RAISE exception_name;
+(...)
+EXCEPTION
+WHEN exception_name THEN
+raise_application_error(err_code,err_message);
+END;
+/
+```
+
+---
+
+## PL/SQL Triggers
+
+A trigger is a pl/sql block structure which is fired when a DML statements like Insert, Delete, Update is executed on a database table. A trigger is triggered automatically when an associated DML statement is executed. 
+
+**Syntax for Creating a Trigger : **
+
+``` CREATE [OR REPLACE ] TRIGGER trigger_name 
+ {BEFORE | AFTER | INSTEAD OF } 
+ {INSERT [OR] | UPDATE [OR] | DELETE} 
+ [OF col_name] 
+ ON table_name 
+ [REFERENCING OLD AS o NEW AS n] 
+ [FOR EACH ROW] 
+ WHEN (condition)  
+ BEGIN 
+   --- sql statements  
+ END;
+ /  ```
+
+- **CREATE [OR REPLACE ] TRIGGER trigger_name** - This clause creates a trigger with the given name or overwrites an existing trigger with the same name.
+- **{BEFORE | AFTER | INSTEAD OF }** - This clause indicates at what time should the trigger get fired. i.e for example: before or after updating a table. _INSTEAD OF_ is used to create a trigger on a view. before and after cannot be used to create a trigger on a view.
+- **{INSERT [OR] | UPDATE [OR] | DELETE}** - This clause determines the triggering event. More than one triggering events can be used together separated by OR keyword. The trigger gets fired at all the specified triggering event.
+-- **[OF col_name]** - This clause is used with update triggers. This clause is used when you want to trigger an event only when a specific column is updated.
+-- **CREATE [OR REPLACE ] TRIGGER trigger_name** - This clause creates a trigger with the given name or overwrites an existing trigger with the same name.
+- **[ON table_name]** - This clause identifies the name of the table or view to which the trigger is associated.
+- **[REFERENCING OLD AS o NEW AS n]** - This clause is used to reference the old and new values of the data being changed. By default, you reference the values as :old.column_name or :new.column_name. The reference names can also be changed from old (or new) to any other user-defined name. You cannot reference old values when inserting a record, or new values when deleting a record, because they do not exist.
+- **[FOR EACH ROW]** - This clause is used to determine whether a trigger must fire when each row gets affected ( i.e. a Row Level Trigger) or just once when the entire sql statement is executed(i.e.statement level Trigger).
+- **WHEN (condition)** - This clause is valid only for row level triggers. The trigger is fired only for rows that satisfy the condition specified.
+
+#### Types of PL/SQL Triggers
+There are two types of triggers based on the which level it is triggered.
+1. Row level trigger - An event is triggered for each row upated, inserted or deleted. 
+2. Statement level trigger - An event is triggered for each sql statement executed. 
+
+#### PL/SQL Trigger Execution Hierarchy
+The following hierarchy is followed when a trigger is fired.
+1. BEFORE statement trigger fires first.
+2. Next BEFORE row level trigger fires, once for each row affected. 
+3. Then AFTER row level trigger fires once for each affected row. This events will alternates between BEFORE and AFTER row level triggers.
+4. Finally the AFTER statement level trigger fires.
+
+We can use the data dictionary view 'USER_TRIGGERS' to obtain information about any trigger.
+
+The below statement shows the structure of the view 'USER_TRIGGERS'
+``` DESC USER_TRIGGERS;  ```
+
+#### CYCLIC CASCADING in a TRIGGER
+This is an undesirable situation where more than one trigger enter into an infinite loop. while creating a trigger we should ensure the such a situtation does not exist.
+
+The below example shows how Trigger's can enter into cyclic cascading.
+Let's consider we have two tables 'abc' and 'xyz'. Two triggers are created.
+
+1. The INSERT Trigger, triggerA on table 'abc' issues an UPDATE on table 'xyz'.
+2. The UPDATE Trigger, triggerB on table 'xyz' issues an INSERT on table 'abc'.
+
+In such a situation, when there is a row inserted in table 'abc', triggerA fires and will update table 'xyz'. 
+When the table 'xyz' is updated, triggerB fires and will insert a row in table 'abc'. 
+This cyclic situation continues and will enter into a infinite loop, which will crash the database.
